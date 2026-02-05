@@ -12,7 +12,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.provider.MediaStore
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -32,38 +31,31 @@ class MainActivity : AppCompatActivity() {
     private var isBound = false
     private var pendingAudioPickerTarget: AudioPickerTarget? = null
 
-    private val audioPicker = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val uri = result.data?.data
-        val target = pendingAudioPickerTarget
-        pendingAudioPickerTarget = null
-        when (target) {
-            AudioPickerTarget.MUSIC -> {
-                handlePickedUri(uri, "Unable to persist music permission.") { pickedUri ->
-                    currentMusicUri = pickedUri
-                    binding.musicFilename.text = pickedUri.lastPathSegment ?: pickedUri.toString()
-                }
-            }
-            AudioPickerTarget.START_CHIME -> {
-                handlePickedUri(uri, "Unable to persist start chime permission.") { pickedUri ->
-                    currentStartChimeUri = pickedUri
-                    binding.startChimeFilename.text = pickedUri.lastPathSegment ?: pickedUri.toString()
-                }
-            }
-            AudioPickerTarget.INTERVAL_CHIME -> {
-                handlePickedUri(uri, "Unable to persist interval chime permission.") { pickedUri ->
-                    currentIntervalChimeUri = pickedUri
-                    binding.intervalChimeFilename.text = pickedUri.lastPathSegment ?: pickedUri.toString()
-                }
-            }
-            AudioPickerTarget.END_CHIME -> {
-                handlePickedUri(uri, "Unable to persist end chime permission.") { pickedUri ->
-                    currentEndChimeUri = pickedUri
-                    binding.endChimeFilename.text = pickedUri.lastPathSegment ?: pickedUri.toString()
-                }
-            }
-            null -> Unit
+    private val musicPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        handlePickedUri(uri, "Unable to persist music permission.") { pickedUri ->
+            currentMusicUri = pickedUri
+            binding.musicFilename.text = pickedUri.lastPathSegment ?: pickedUri.toString()
+        }
+    }
+
+    private val startChimePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        handlePickedUri(uri, "Unable to persist start chime permission.") { pickedUri ->
+            currentStartChimeUri = pickedUri
+            binding.startChimeFilename.text = pickedUri.lastPathSegment ?: pickedUri.toString()
+        }
+    }
+
+    private val intervalChimePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        handlePickedUri(uri, "Unable to persist interval chime permission.") { pickedUri ->
+            currentIntervalChimeUri = pickedUri
+            binding.intervalChimeFilename.text = pickedUri.lastPathSegment ?: pickedUri.toString()
+        }
+    }
+
+    private val endChimePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        handlePickedUri(uri, "Unable to persist end chime permission.") { pickedUri ->
+            currentEndChimeUri = pickedUri
+            binding.endChimeFilename.text = pickedUri.lastPathSegment ?: pickedUri.toString()
         }
     }
 
@@ -82,7 +74,6 @@ class MainActivity : AppCompatActivity() {
             launchPendingPicker()
         } else {
             Toast.makeText(this, "Media access is required to pick audio files.", Toast.LENGTH_LONG).show()
-            pendingAudioPickerTarget = null
         }
     }
 
@@ -203,12 +194,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun launchPendingPicker() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "audio/*"
-            putExtra(Intent.EXTRA_INITIAL_URI, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
+        when (pendingAudioPickerTarget) {
+            AudioPickerTarget.MUSIC -> musicPicker.launch(arrayOf("audio/*"))
+            AudioPickerTarget.START_CHIME -> startChimePicker.launch(arrayOf("audio/*"))
+            AudioPickerTarget.INTERVAL_CHIME -> intervalChimePicker.launch(arrayOf("audio/*"))
+            AudioPickerTarget.END_CHIME -> endChimePicker.launch(arrayOf("audio/*"))
+            null -> Unit
         }
-        audioPicker.launch(intent)
+        pendingAudioPickerTarget = null
     }
 
     private fun handlePickedUri(uri: Uri?, errorMessage: String, onSuccess: (Uri) -> Unit) {
