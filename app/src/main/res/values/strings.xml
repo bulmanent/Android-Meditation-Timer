@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Meditation Timer</string>
+    <string name="duration_label">Duration (minutes)</string>
+    <string name="interval_label">Interval (minutes, 0 for none)</string>
+    <string name="select_music">Select Background Music</string>
+    <string name="music_none">No music selected</string>
+    <string name="chime_none">No chime selected</string>
+    <string name="start">Start</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="stop">Stop</string>
+    <string name="save_preset">Save Preset</string>
+    <string name="load_preset">Load Preset</string>
+    <string name="start_chime">Start chime</string>
+    <string name="interval_chime">Interval chime</string>
+    <string name="end_chime">End chime</string>
+    <string name="select_start_chime">Select Start Chime</string>
+    <string name="select_interval_chime">Select Interval Chime</string>
+    <string name="select_end_chime">Select End Chime</string>
+</resources>
