@@ -1,0 +1,19 @@
+# Gradle / Android build outputs
+.gradle/
+**/build/
+
+# Local configuration
+local.properties
+
+# IDE
+.idea/
+*.iml
+
+# Keys / secrets
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+gith.txt
+gith.txt.pub
