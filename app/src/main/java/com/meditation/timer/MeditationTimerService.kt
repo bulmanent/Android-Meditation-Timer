@@ -376,6 +376,15 @@ class MeditationTimerService : Service() {
         metronomeManager?.setVolume(metronomeVolume)
     }
 
+    fun updateMetronome(bpm: Int, beats: Int) {
+        metronomeBpm = bpm
+        metronomeBeats = beats
+        metronomeManager?.configure(metronomeBpm, metronomeBeats)
+        if (metronomeRunning) {
+            updateNotification()
+        }
+    }
+
     private fun startMetronome(intent: Intent) {
         metronomeBpm = intent.getIntExtra(EXTRA_METRONOME_BPM, metronomeBpm)
         metronomeBeats = intent.getIntExtra(EXTRA_METRONOME_BEATS, metronomeBeats)

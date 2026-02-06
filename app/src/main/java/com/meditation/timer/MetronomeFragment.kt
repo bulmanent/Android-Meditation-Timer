@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.core.content.ContextCompat
+import androidx.core.widget.doAfterTextChanged
 import com.meditation.timer.databinding.FragmentMetronomeBinding
 import kotlin.math.roundToInt
 
@@ -17,6 +18,7 @@ class MetronomeFragment : Fragment() {
     private val binding get() = _binding!!
     private var service: MeditationTimerService? = null
     private var isBound = false
+    private var suppressUpdates = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,20 +41,44 @@ class MetronomeFragment : Fragment() {
         updateStatus(false)
 
         binding.bpmSlider.addOnChangeListener { _, value, fromUser ->
-            if (fromUser) {
+            if (fromUser && !suppressUpdates) {
                 binding.bpmInput.setText(value.roundToInt().toString())
+                updateServiceConfigIfRunning()
             }
         }
         binding.beatsPerBarSlider.addOnChangeListener { _, value, fromUser ->
-            if (fromUser) {
+            if (fromUser && !suppressUpdates) {
                 binding.beatsPerBarInput.setText(value.roundToInt().toString())
+                updateServiceConfigIfRunning()
             }
         }
         binding.metronomeVolumeSlider.addOnChangeListener { _, value, fromUser ->
-            if (fromUser) {
+            if (fromUser && !suppressUpdates) {
                 val percent = value.roundToInt().coerceIn(0, 100)
                 binding.metronomeVolumeValue.text = "$percent%"
                 service?.setMetronomeVolume(percent / 100f)
+            }
+        }
+
+        binding.bpmInput.doAfterTextChanged { text ->
+            if (suppressUpdates) return@doAfterTextChanged
+            val bpm = text?.toString()?.toIntOrNull() ?: return@doAfterTextChanged
+            if (bpm in 30..200) {
+                suppressUpdates = true
+                binding.bpmSlider.value = bpm.toFloat()
+                suppressUpdates = false
+                updateServiceConfigIfRunning()
+            }
+        }
+
+        binding.beatsPerBarInput.doAfterTextChanged { text ->
+            if (suppressUpdates) return@doAfterTextChanged
+            val beats = text?.toString()?.toIntOrNull() ?: return@doAfterTextChanged
+            if (beats in 1..12) {
+                suppressUpdates = true
+                binding.beatsPerBarSlider.value = beats.toFloat()
+                suppressUpdates = false
+                updateServiceConfigIfRunning()
             }
         }
 
@@ -131,6 +157,7 @@ class MetronomeFragment : Fragment() {
 
     private fun syncFromService() {
         val boundService = service ?: return
+        suppressUpdates = true
         binding.bpmInput.setText(boundService.getMetronomeBpm().toString())
         binding.beatsPerBarInput.setText(boundService.getMetronomeBeats().toString())
         binding.bpmSlider.value = boundService.getMetronomeBpm().toFloat()
@@ -138,6 +165,16 @@ class MetronomeFragment : Fragment() {
         val percent = (boundService.getMetronomeVolume() * 100).roundToInt().coerceIn(0, 100)
         binding.metronomeVolumeSlider.value = percent.toFloat()
         binding.metronomeVolumeValue.text = "$percent%"
+        suppressUpdates = false
         updateStatus(boundService.isMetronomeRunning())
+    }
+
+    private fun updateServiceConfigIfRunning() {
+        val boundService = service ?: return
+        if (!boundService.isMetronomeRunning()) return
+        val bpm = binding.bpmInput.text?.toString()?.toIntOrNull() ?: return
+        val beats = binding.beatsPerBarInput.text?.toString()?.toIntOrNull() ?: return
+        if (bpm !in 30..200 || beats !in 1..12) return
+        boundService.updateMetronome(bpm, beats)
     }
 }
