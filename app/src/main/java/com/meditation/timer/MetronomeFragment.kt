@@ -46,7 +46,7 @@ class MetronomeFragment : Fragment() {
         val toneAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, toneLabels)
         binding.metronomeToneDropdown.setAdapter(toneAdapter)
         toneIndex = AppSettings.getMetronomeToneIndex(requireContext())
-        binding.metronomeToneDropdown.setText(toneLabels.getOrNull(toneIndex) ?: toneLabels.first(), false)
+        binding.metronomeToneDropdown.setText(toneLabels.getOrNull(toneIndex) ?: toneLabels.first())
         binding.metronomeToneDropdown.setOnItemClickListener { _, _, position, _ ->
             toneIndex = position
             AppSettings.setMetronomeToneIndex(requireContext(), position)
@@ -182,8 +182,7 @@ class MetronomeFragment : Fragment() {
         toneIndex = boundService.getMetronomeToneIndex()
         val toneLabels = MetronomeToneOptions.options.map { it.label }
         binding.metronomeToneDropdown.setText(
-            toneLabels.getOrNull(toneIndex) ?: toneLabels.first(),
-            false
+            toneLabels.getOrNull(toneIndex) ?: toneLabels.first()
         )
         suppressUpdates = false
         updateStatus(boundService.isMetronomeRunning())
