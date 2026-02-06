@@ -101,7 +101,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:text="@string/load_preset" />
+                android:text="@string/load_preset"
+                android:textSize="13sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/saveDefaultButton"
@@ -109,14 +110,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:text="@string/save_default" />
+                android:text="@string/save_default"
+                android:textSize="13sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/savePresetButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/save_preset" />
+                android:text="@string/save_preset"
+                android:textSize="13sp" />
         </LinearLayout>
 
         <TextView
