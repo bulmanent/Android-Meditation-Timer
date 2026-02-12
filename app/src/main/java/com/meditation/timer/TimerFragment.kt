@@ -1,6 +1,7 @@
 package com.meditation.timer
 
 import android.Manifest
+import android.content.ClipData
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -336,9 +337,27 @@ class TimerFragment : Fragment() {
             putExtra(MeditationTimerService.EXTRA_INTERVAL_CHIME, config.intervalChimeUri)
             putExtra(MeditationTimerService.EXTRA_END_CHIME, config.endChimeUri)
         }
+        grantServiceReadAccess(intent, currentEntrainmentUri)
+        grantServiceReadAccess(intent, currentMusicUri)
+        grantServiceReadAccess(intent, currentStartChimeUri)
+        grantServiceReadAccess(intent, currentIntervalChimeUri)
+        grantServiceReadAccess(intent, currentEndChimeUri)
         ContextCompat.startForegroundService(requireContext(), intent)
         startActivity(Intent(requireContext(), TimerSessionActivity::class.java))
         binding.root.postDelayed({ updateButtons() }, 150)
+    }
+
+    private fun grantServiceReadAccess(intent: Intent, uri: Uri?) {
+        if (uri == null) {
+            return
+        }
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        val existingClip = intent.clipData
+        intent.clipData = if (existingClip == null) {
+            ClipData.newUri(requireContext().contentResolver, "audio", uri)
+        } else {
+            existingClip.apply { addItem(ClipData.Item(uri)) }
+        }
     }
 
     private fun savePreset() {
