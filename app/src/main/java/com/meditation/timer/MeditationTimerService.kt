@@ -47,6 +47,7 @@ class MeditationTimerService : Service() {
 
     private var entrainmentPlayer: MediaPlayer? = null
     private var backgroundPlayer: MediaPlayer? = null
+    private val activeChimePlayers = mutableSetOf<MediaPlayer>()
 
     private val tickRunnable = object : Runnable {
         override fun run() {
@@ -163,8 +164,13 @@ class MeditationTimerService : Service() {
     }
 
     private fun completeSession() {
-        playChime(endChimeUri)
-        stopSession()
+        if (endChimeUri.isNullOrBlank()) {
+            stopSession()
+            return
+        }
+        playChime(endChimeUri) {
+            stopSession()
+        }
     }
 
     private fun startBackgroundMusic(uriString: String?) {
@@ -227,29 +233,47 @@ class MeditationTimerService : Service() {
         entrainmentPlayer = null
     }
 
-    private fun playChime(uriString: String?) {
+    private fun playChime(uriString: String?, onComplete: (() -> Unit)? = null) {
         if (uriString.isNullOrBlank()) {
+            onComplete?.invoke()
             return
         }
         val uri = Uri.parse(uriString)
         val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .setUsage(AudioAttributes.USAGE_MEDIA)
+            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
             .build()
         val player = MediaPlayer()
+        synchronized(activeChimePlayers) {
+            activeChimePlayers.add(player)
+        }
         try {
             player.setAudioAttributes(audioAttributes)
             player.setDataSource(this, uri)
-            player.setOnCompletionListener { it.release() }
+            player.setOnCompletionListener {
+                releaseChimePlayer(it)
+                onComplete?.invoke()
+            }
             player.setOnErrorListener { mp, _, _ ->
-                mp.release()
+                releaseChimePlayer(mp)
+                onComplete?.invoke()
                 true
             }
-            player.prepare()
-            player.start()
+            player.setOnPreparedListener { preparedPlayer ->
+                preparedPlayer.start()
+            }
+            player.prepareAsync()
         } catch (exception: Exception) {
-            player.release()
+            releaseChimePlayer(player)
+            onComplete?.invoke()
         }
+    }
+
+    private fun releaseChimePlayer(player: MediaPlayer) {
+        synchronized(activeChimePlayers) {
+            activeChimePlayers.remove(player)
+        }
+        player.release()
     }
 
     private fun acquireWakeLock() {
@@ -337,6 +361,10 @@ class MeditationTimerService : Service() {
         releaseWakeLock()
         stopBackgroundMusic()
         stopEntrainmentAudio()
+        synchronized(activeChimePlayers) {
+            activeChimePlayers.forEach { it.release() }
+            activeChimePlayers.clear()
+        }
         stopMetronomeInternal()
         metronomeManager?.release()
         super.onDestroy()

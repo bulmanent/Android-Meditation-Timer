@@ -9,6 +9,7 @@ import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.meditation.timer.databinding.ActivityTimerSessionBinding
 
@@ -71,6 +72,7 @@ class TimerSessionActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         unregisterReceiver(timerReceiver)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         if (isBound) {
             unbindService(serviceConnection)
             isBound = false
@@ -119,6 +121,16 @@ class TimerSessionActivity : AppCompatActivity() {
         binding.pauseResumeButton.isEnabled = isRunning || isPaused
         binding.pauseResumeButton.text = if (isPaused) getString(R.string.resume) else getString(R.string.pause)
         binding.stopButton.isEnabled = isRunning || isPaused
+        updateKeepScreenAwake(state)
+    }
+
+    private fun updateKeepScreenAwake(state: MeditationTimerService.TimerState) {
+        val enabled = AppSettings.isKeepScreenAwakeEnabled(this)
+        if (state == MeditationTimerService.TimerState.RUNNING && enabled) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
     }
 
     private fun finishIfStopped() {
