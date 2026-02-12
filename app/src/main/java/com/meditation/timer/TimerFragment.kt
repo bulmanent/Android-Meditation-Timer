@@ -151,8 +151,6 @@ class TimerFragment : Fragment() {
             ensureMediaPermissionAndPick()
         }
         binding.startButton.setOnClickListener { startTimer() }
-        binding.pauseButton.setOnClickListener { pauseOrResumeTimer() }
-        binding.stopButton.setOnClickListener { stopTimer() }
         binding.savePresetButton.setOnClickListener { savePreset() }
         binding.loadPresetButton.setOnClickListener { loadPreset() }
         binding.deletePresetButton.setOnClickListener { deletePreset() }
@@ -343,28 +341,6 @@ class TimerFragment : Fragment() {
         binding.root.postDelayed({ updateButtons() }, 150)
     }
 
-    private fun pauseOrResumeTimer() {
-        val currentState = service?.currentState ?: MeditationTimerService.TimerState.IDLE
-        val action = if (currentState == MeditationTimerService.TimerState.RUNNING) {
-            MeditationTimerService.ACTION_PAUSE
-        } else {
-            MeditationTimerService.ACTION_RESUME
-        }
-        val intent = Intent(requireContext(), MeditationTimerService::class.java).apply {
-            this.action = action
-        }
-        requireContext().startService(intent)
-        binding.root.postDelayed({ updateButtons() }, 150)
-    }
-
-    private fun stopTimer() {
-        val intent = Intent(requireContext(), MeditationTimerService::class.java).apply {
-            action = MeditationTimerService.ACTION_STOP
-        }
-        requireContext().startService(intent)
-        binding.root.postDelayed({ updateButtons() }, 150)
-    }
-
     private fun savePreset() {
         val duration = binding.durationInput.text?.toString()?.toIntOrNull() ?: 0
         val interval = binding.intervalInput.text?.toString()?.toIntOrNull() ?: 0
@@ -513,12 +489,7 @@ class TimerFragment : Fragment() {
 
     private fun updateButtons() {
         val state = service?.currentState ?: MeditationTimerService.TimerState.IDLE
-        val isRunning = state == MeditationTimerService.TimerState.RUNNING
-        val isPaused = state == MeditationTimerService.TimerState.PAUSED
         binding.startButton.isEnabled = state == MeditationTimerService.TimerState.IDLE
-        binding.pauseButton.isEnabled = isRunning || isPaused
-        binding.pauseButton.text = if (isPaused) getString(R.string.resume) else getString(R.string.pause)
-        binding.stopButton.isEnabled = isRunning || isPaused
         updateKeepScreenAwake(state)
     }
 

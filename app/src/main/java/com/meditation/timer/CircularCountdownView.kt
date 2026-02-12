@@ -13,21 +13,23 @@ class CircularCountdownView @JvmOverloads constructor(
     attrs: AttributeSet? = null
 ) : View(context, attrs) {
     private val arcBounds = RectF()
-    private val strokeWidthPx = 18f * resources.displayMetrics.density
+    private val outlineWidthPx = 2f * resources.displayMetrics.density
     private var remainingFraction = 1f
 
-    private val basePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeCap = Paint.Cap.BUTT
-        strokeWidth = strokeWidthPx
-        color = ContextCompat.getColor(context, R.color.red_200)
+    private val remainingPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        color = ContextCompat.getColor(context, R.color.red_600)
     }
 
-    private val progressPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val elapsedSlicePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        color = ContextCompat.getColor(context, R.color.pale_green_50)
+    }
+
+    private val outlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeCap = Paint.Cap.BUTT
-        strokeWidth = strokeWidthPx
-        color = ContextCompat.getColor(context, R.color.red_600)
+        strokeWidth = outlineWidthPx
+        color = ContextCompat.getColor(context, R.color.red_200)
     }
 
     fun setRemainingFraction(fraction: Float) {
@@ -37,17 +39,19 @@ class CircularCountdownView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val halfStroke = strokeWidthPx / 2f
+        val halfStroke = outlineWidthPx / 2f
         arcBounds.set(
             paddingLeft + halfStroke,
             paddingTop + halfStroke,
             width - paddingRight - halfStroke,
             height - paddingBottom - halfStroke
         )
-        canvas.drawArc(arcBounds, -90f, 360f, false, basePaint)
-        val sweep = 360f * remainingFraction
-        if (sweep > 0f) {
-            canvas.drawArc(arcBounds, -90f, sweep, false, progressPaint)
+        canvas.drawOval(arcBounds, remainingPaint)
+
+        val elapsedSweep = 360f * (1f - remainingFraction)
+        if (elapsedSweep > 0f) {
+            canvas.drawArc(arcBounds, -90f, elapsedSweep, true, elapsedSlicePaint)
         }
+        canvas.drawOval(arcBounds, outlinePaint)
     }
 }
