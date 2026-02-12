@@ -29,6 +29,11 @@ class PresetManager(context: Context) {
         return loadPresets().firstOrNull { it.name == name }
     }
 
+    fun deletePresetByName(name: String) {
+        val updatedPresets = loadPresets().filterNot { it.name == name }
+        prefs.edit().putString(KEY_PRESETS, gson.toJson(updatedPresets)).apply()
+    }
+
     fun saveDefaultPreset(preset: Preset) {
         prefs.edit().putString(KEY_DEFAULT_PRESET, gson.toJson(preset)).apply()
     }

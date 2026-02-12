@@ -155,6 +155,7 @@ class TimerFragment : Fragment() {
         binding.stopButton.setOnClickListener { stopTimer() }
         binding.savePresetButton.setOnClickListener { savePreset() }
         binding.loadPresetButton.setOnClickListener { loadPreset() }
+        binding.deletePresetButton.setOnClickListener { deletePreset() }
         binding.saveDefaultButton.setOnClickListener { saveDefaultPreset() }
 
         binding.entrainmentVolumeSlider.addOnChangeListener { _, value, fromUser ->
@@ -338,6 +339,7 @@ class TimerFragment : Fragment() {
             putExtra(MeditationTimerService.EXTRA_END_CHIME, config.endChimeUri)
         }
         ContextCompat.startForegroundService(requireContext(), intent)
+        startActivity(Intent(requireContext(), TimerSessionActivity::class.java))
         binding.root.postDelayed({ updateButtons() }, 150)
     }
 
@@ -434,6 +436,30 @@ class TimerFragment : Fragment() {
             .setItems(names) { _, which ->
                 val preset = presets[which]
                 applyPreset(preset)
+            }
+            .show()
+    }
+
+    private fun deletePreset() {
+        val presets = presetManager.loadPresets()
+        if (presets.isEmpty()) {
+            Toast.makeText(requireContext(), "No presets saved yet.", Toast.LENGTH_LONG).show()
+            return
+        }
+        val names = presets.map { it.name }.toTypedArray()
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete preset")
+            .setItems(names) { _, which ->
+                val presetName = presets[which].name
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Delete \"$presetName\"?")
+                    .setMessage("This cannot be undone.")
+                    .setPositiveButton("Delete") { _, _ ->
+                        presetManager.deletePresetByName(presetName)
+                        Toast.makeText(requireContext(), "Preset deleted.", Toast.LENGTH_LONG).show()
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
             }
             .show()
     }

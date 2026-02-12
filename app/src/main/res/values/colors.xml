@@ -6,4 +6,6 @@
     <color name="lavender_700">#7B1FA2</color>
     <color name="lavender_900">#4A148C</color>
     <color name="pale_green_50">#E7F8E9</color>
+    <color name="red_200">#FFCDD2</color>
+    <color name="red_600">#E53935</color>
 </resources>

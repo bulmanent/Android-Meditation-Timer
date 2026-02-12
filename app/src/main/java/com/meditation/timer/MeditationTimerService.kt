@@ -279,7 +279,7 @@ class MeditationTimerService : Service() {
     }
 
     private fun buildNotification(): Notification {
-        val openIntent = Intent(this, MainActivity::class.java)
+        val openIntent = Intent(this, TimerSessionActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,
@@ -363,6 +363,10 @@ class MeditationTimerService : Service() {
     fun stopMusicPlayback() {
         stopBackgroundMusic()
     }
+
+    fun getTotalSeconds(): Long = totalSeconds
+
+    fun getRemainingSeconds(): Long = remainingSeconds
 
     fun isMetronomeRunning(): Boolean = metronomeRunning
 
