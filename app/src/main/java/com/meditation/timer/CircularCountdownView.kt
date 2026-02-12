@@ -18,7 +18,7 @@ class CircularCountdownView @JvmOverloads constructor(
 
     private val remainingPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
-        color = ContextCompat.getColor(context, R.color.red_600)
+        color = ContextCompat.getColor(context, R.color.red_500)
     }
 
     private val elapsedSlicePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
