@@ -396,6 +396,10 @@ class MeditationTimerService : Service() {
 
     fun getRemainingSeconds(): Long = remainingSeconds
 
+    fun getEntrainmentVolume(): Float = entrainmentVolume
+
+    fun getMusicVolume(): Float = musicVolume
+
     fun isMetronomeRunning(): Boolean = metronomeRunning
 
     fun getMetronomeBpm(): Int = metronomeBpm

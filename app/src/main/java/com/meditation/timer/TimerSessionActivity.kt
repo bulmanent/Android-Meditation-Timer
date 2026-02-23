@@ -12,6 +12,7 @@ import android.os.IBinder
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.meditation.timer.databinding.ActivityTimerSessionBinding
+import kotlin.math.roundToInt
 
 class TimerSessionActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTimerSessionBinding
@@ -33,6 +34,7 @@ class TimerSessionActivity : AppCompatActivity() {
             val localBinder = binder as MeditationTimerService.LocalBinder
             service = localBinder.getService()
             updateTimerUi(service?.getRemainingSeconds() ?: 0L, service?.getTotalSeconds() ?: 0L)
+            initializeVolumeControls()
             updateButtons()
             finishIfStopped()
         }
@@ -53,6 +55,20 @@ class TimerSessionActivity : AppCompatActivity() {
             stopTimer()
             finish()
         }
+        binding.musicVolumeSlider.addOnChangeListener { _, value, fromUser ->
+            binding.musicVolumeValue.text = formatVolumePercent(value)
+            if (fromUser) {
+                service?.setMusicVolume(value)
+            }
+        }
+        binding.entrainmentVolumeSlider.addOnChangeListener { _, value, fromUser ->
+            binding.entrainmentVolumeValue.text = formatVolumePercent(value)
+            if (fromUser) {
+                service?.setEntrainmentVolume(value)
+            }
+        }
+        binding.musicVolumeValue.text = formatVolumePercent(binding.musicVolumeSlider.value)
+        binding.entrainmentVolumeValue.text = formatVolumePercent(binding.entrainmentVolumeSlider.value)
     }
 
     override fun onStart() {
@@ -137,5 +153,19 @@ class TimerSessionActivity : AppCompatActivity() {
         if (service?.currentState == MeditationTimerService.TimerState.IDLE) {
             finish()
         }
+    }
+
+    private fun initializeVolumeControls() {
+        val serviceRef = service ?: return
+        val music = serviceRef.getMusicVolume()
+        val entrainment = serviceRef.getEntrainmentVolume()
+        binding.musicVolumeSlider.value = music
+        binding.entrainmentVolumeSlider.value = entrainment
+        binding.musicVolumeValue.text = formatVolumePercent(music)
+        binding.entrainmentVolumeValue.text = formatVolumePercent(entrainment)
+    }
+
+    private fun formatVolumePercent(value: Float): String {
+        return "${(value * 100).roundToInt().coerceIn(0, 100)}%"
     }
 }
