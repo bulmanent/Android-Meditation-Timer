@@ -46,4 +46,6 @@
     <string name="metronome_stop">Stop metronome</string>
     <string name="metronome_status_running">Metronome running</string>
     <string name="metronome_status_stopped">Metronome stopped</string>
+    <string name="use_square_breathing_gif">Use square breathing GIF</string>
+    <string name="square_breathing_visual">Square breathing guide animation</string>
 </resources>

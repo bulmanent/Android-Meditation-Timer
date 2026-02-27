@@ -6,6 +6,7 @@ object AppSettings {
     private const val PREFS_NAME = "meditation_timer_settings"
     const val KEY_KEEP_SCREEN_AWAKE = "keep_screen_awake"
     const val KEY_METRONOME_TONE_INDEX = "metronome_tone_index"
+    const val KEY_USE_SQUARE_BREATHING_GIF = "use_square_breathing_gif"
 
     fun isKeepScreenAwakeEnabled(context: Context): Boolean {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -28,6 +29,18 @@ object AppSettings {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .putInt(KEY_METRONOME_TONE_INDEX, index)
+            .apply()
+    }
+
+    fun isSquareBreathingGifEnabled(context: Context): Boolean {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getBoolean(KEY_USE_SQUARE_BREATHING_GIF, false)
+    }
+
+    fun setSquareBreathingGifEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_USE_SQUARE_BREATHING_GIF, enabled)
             .apply()
     }
 

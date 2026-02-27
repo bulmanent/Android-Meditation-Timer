@@ -9,8 +9,10 @@ import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
 import com.meditation.timer.databinding.ActivityTimerSessionBinding
 import kotlin.math.roundToInt
 
@@ -18,6 +20,7 @@ class TimerSessionActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTimerSessionBinding
     private var service: MeditationTimerService? = null
     private var isBound = false
+    private var isGifLoaded = false
 
     private val timerReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -67,6 +70,15 @@ class TimerSessionActivity : AppCompatActivity() {
                 service?.setEntrainmentVolume(value)
             }
         }
+
+        val useGif = AppSettings.isSquareBreathingGifEnabled(this)
+        binding.visualModeSwitch.isChecked = useGif
+        applyVisualMode(useGif)
+        binding.visualModeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            AppSettings.setSquareBreathingGifEnabled(this, isChecked)
+            applyVisualMode(isChecked)
+        }
+
         binding.musicVolumeValue.text = formatVolumePercent(binding.musicVolumeSlider.value)
         binding.entrainmentVolumeValue.text = formatVolumePercent(binding.entrainmentVolumeSlider.value)
     }
@@ -95,6 +107,11 @@ class TimerSessionActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        Glide.with(this).clear(binding.breathingGif)
+    }
+
     private fun pauseOrResumeTimer() {
         val currentState = service?.currentState ?: MeditationTimerService.TimerState.IDLE
         val action = if (currentState == MeditationTimerService.TimerState.RUNNING) {
@@ -120,7 +137,9 @@ class TimerSessionActivity : AppCompatActivity() {
     private fun updateTimerUi(remainingSeconds: Long, totalSeconds: Long) {
         val minutes = remainingSeconds / 60
         val seconds = remainingSeconds % 60
-        binding.remainingTime.text = String.format("%02d:%02d", minutes, seconds)
+        val timeText = String.format("%02d:%02d", minutes, seconds)
+        binding.remainingTime.text = timeText
+        binding.remainingTimeBelow.text = timeText
 
         val fractionRemaining = if (totalSeconds > 0L) {
             remainingSeconds.toFloat() / totalSeconds.toFloat()
@@ -167,5 +186,17 @@ class TimerSessionActivity : AppCompatActivity() {
 
     private fun formatVolumePercent(value: Float): String {
         return "${(value * 100).roundToInt().coerceIn(0, 100)}%"
+    }
+
+    private fun applyVisualMode(useGif: Boolean) {
+        binding.ringContainer.visibility = if (useGif) View.GONE else View.VISIBLE
+        binding.gifContainer.visibility = if (useGif) View.VISIBLE else View.GONE
+        if (useGif && !isGifLoaded) {
+            Glide.with(this)
+                .asGif()
+                .load(R.drawable.square_breathing)
+                .into(binding.breathingGif)
+            isGifLoaded = true
+        }
     }
 }
