@@ -189,6 +189,11 @@ class MeditationTimerService : Service() {
                 setDataSource(this@MeditationTimerService, uri)
                 isLooping = true
                 setVolume(musicVolume, musicVolume)
+                setOnErrorListener { mp, _, _ ->
+                    mp.release()
+                    backgroundPlayer = null
+                    true
+                }
                 prepare()
                 start()
             }
@@ -198,7 +203,6 @@ class MeditationTimerService : Service() {
     }
 
     private fun stopBackgroundMusic() {
-        backgroundPlayer?.stop()
         backgroundPlayer?.release()
         backgroundPlayer = null
     }
@@ -219,6 +223,11 @@ class MeditationTimerService : Service() {
                 setDataSource(this@MeditationTimerService, uri)
                 isLooping = true
                 setVolume(entrainmentVolume, entrainmentVolume)
+                setOnErrorListener { mp, _, _ ->
+                    mp.release()
+                    entrainmentPlayer = null
+                    true
+                }
                 prepare()
                 start()
             }
@@ -228,7 +237,6 @@ class MeditationTimerService : Service() {
     }
 
     private fun stopEntrainmentAudio() {
-        entrainmentPlayer?.stop()
         entrainmentPlayer?.release()
         entrainmentPlayer = null
     }
