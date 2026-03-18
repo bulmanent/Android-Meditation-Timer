@@ -117,8 +117,8 @@ class TimerSessionActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        binding.breathingGif.setImageDrawable(null)
         super.onDestroy()
-        Glide.with(this).clear(binding.breathingGif)
     }
 
     private fun pauseOrResumeTimer() {
