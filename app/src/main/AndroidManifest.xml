@@ -11,9 +11,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/zen_buddha"
+        android:icon="@drawable/buddhism"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/zen_buddha"
+        android:roundIcon="@drawable/buddhism"
         android:theme="@style/Theme.MeditationTimer">
         <activity
             android:name=".MainActivity"
