@@ -20,6 +20,7 @@ class TimerSessionActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTimerSessionBinding
     private var service: MeditationTimerService? = null
     private var isBound = false
+    private var isReceiverRegistered = false
     private var isGifLoaded = false
 
     private val timerReceiver = object : BroadcastReceiver() {
@@ -44,6 +45,7 @@ class TimerSessionActivity : AppCompatActivity() {
 
         override fun onServiceDisconnected(name: ComponentName) {
             service = null
+            isBound = false
             finish()
         }
     }
@@ -85,8 +87,11 @@ class TimerSessionActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        bindService(Intent(this, MeditationTimerService::class.java), serviceConnection, Context.BIND_AUTO_CREATE)
-        isBound = true
+        isBound = bindService(
+            Intent(this, MeditationTimerService::class.java),
+            serviceConnection,
+            Context.BIND_AUTO_CREATE
+        )
 
         val filter = IntentFilter(MeditationTimerService.ACTION_TICK)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -95,11 +100,15 @@ class TimerSessionActivity : AppCompatActivity() {
             @Suppress("DEPRECATION")
             registerReceiver(timerReceiver, filter)
         }
+        isReceiverRegistered = true
     }
 
     override fun onStop() {
         super.onStop()
-        unregisterReceiver(timerReceiver)
+        if (isReceiverRegistered) {
+            unregisterReceiver(timerReceiver)
+            isReceiverRegistered = false
+        }
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         if (isBound) {
             unbindService(serviceConnection)
