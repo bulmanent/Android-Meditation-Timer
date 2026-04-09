@@ -10,7 +10,7 @@ class MainPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activi
     override fun createFragment(position: Int): Fragment {
         return when (position) {
             0 -> TimerFragment()
-            else -> MetronomeFragment()
+            else -> ExerciseTimerFragment()
         }
     }
 }

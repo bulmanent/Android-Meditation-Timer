@@ -36,16 +36,30 @@
     <string name="keep_screen_awake">Keep screen awake while timer runs</string>
     <string name="keep_screen_awake_hint">Prevents the screen from dimming or locking while the meditation timer is running.</string>
     <string name="tab_timer">Timer</string>
-    <string name="tab_metronome">Metronome</string>
-    <string name="metronome_title">Metronome</string>
-    <string name="metronome_bpm">Tempo (BPM)</string>
-    <string name="metronome_beats_per_bar">Beats per bar</string>
-    <string name="metronome_tone">Metronome tone</string>
-    <string name="metronome_volume">Metronome volume</string>
-    <string name="metronome_start">Start metronome</string>
-    <string name="metronome_stop">Stop metronome</string>
-    <string name="metronome_status_running">Metronome running</string>
-    <string name="metronome_status_stopped">Metronome stopped</string>
+    <string name="tab_exercise_timer">Exercise Timer</string>
     <string name="use_square_breathing_gif">Use square breathing GIF</string>
     <string name="square_breathing_visual">Square breathing guide animation</string>
+
+    <!-- Exercise Timer -->
+    <string name="add_new_routine">Add New Routine</string>
+    <string name="no_routines">No routines yet. Tap \'Add New Routine\' to create one.</string>
+    <string name="routine_name_hint">Routine name</string>
+    <string name="bell_sound_label">Bell sound</string>
+    <string name="select_bell_sound">Select Bell Sound</string>
+    <string name="clear_bell_sound">Clear Bell Sound</string>
+    <string name="add_interval">Add Interval</string>
+    <string name="save_routine">Save Routine</string>
+    <string name="new_routine_title">New Routine</string>
+    <string name="edit_routine_title">Edit Routine</string>
+    <string name="interval_name_hint">Interval name (e.g. Wall Sit)</string>
+    <string name="minutes_hint">Minutes</string>
+    <string name="seconds_hint">Seconds</string>
+    <string name="add_interval_title">Add Interval</string>
+    <string name="edit_interval_title">Edit Interval</string>
+    <string name="no_intervals_yet">No intervals added yet.</string>
+    <string name="intervals_label">Intervals</string>
+    <string name="exercise_session_title">Exercise Session</string>
+    <string name="next_label">Next:</string>
+    <string name="paused_label">PAUSED</string>
+    <string name="skip">Skip</string>
 </resources>

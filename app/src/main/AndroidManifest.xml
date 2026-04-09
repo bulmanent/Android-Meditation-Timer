@@ -30,9 +30,19 @@
         <activity
             android:name=".TimerSessionActivity"
             android:exported="false" />
+        <activity
+            android:name=".ExerciseRoutineEditActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ExerciseSessionActivity"
+            android:exported="false" />
 
         <service
             android:name=".MeditationTimerService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+        <service
+            android:name=".ExerciseTimerService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
     </application>

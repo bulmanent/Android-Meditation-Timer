@@ -10,7 +10,6 @@ import android.content.Intent
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.Uri
-import android.media.AudioManager
 import android.os.Binder
 import android.os.Build
 import android.os.Handler
@@ -24,12 +23,6 @@ class MeditationTimerService : Service() {
     private val binder = LocalBinder()
     private val handler = Handler(Looper.getMainLooper())
     private var wakeLock: PowerManager.WakeLock? = null
-    private var metronomeManager: MetronomeManager? = null
-    private var metronomeRunning = false
-    private var metronomeBpm = 90
-    private var metronomeBeats = 4
-    private var metronomeVolume = 1.0f
-    private var metronomeToneIndex = 0
 
     var currentState: TimerState = TimerState.IDLE
         private set
@@ -74,8 +67,6 @@ class MeditationTimerService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        metronomeManager = MetronomeManager(audioManager) { onMetronomeStopped() }
     }
 
     override fun onBind(intent: Intent): IBinder {
@@ -88,8 +79,6 @@ class MeditationTimerService : Service() {
             ACTION_PAUSE -> pauseSession()
             ACTION_RESUME -> resumeSession()
             ACTION_STOP -> stopSession()
-            ACTION_METRONOME_START -> startMetronome(intent)
-            ACTION_METRONOME_STOP -> stopMetronome()
         }
         return START_STICKY
     }
@@ -154,13 +143,9 @@ class MeditationTimerService : Service() {
         releaseWakeLock()
         stopBackgroundMusic()
         stopEntrainmentAudio()
-        if (metronomeRunning) {
-            updateNotification()
-        } else {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            stopSelf()
-        }
         broadcastTick()
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
     }
 
     private fun completeSession() {
@@ -318,19 +303,10 @@ class MeditationTimerService : Service() {
             openIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val contentText = when {
-            currentState == TimerState.RUNNING && metronomeRunning ->
-                "Timer: ${formatTime(remainingSeconds)} \u2022 Metronome"
-            currentState == TimerState.RUNNING ->
-                "Timer: ${formatTime(remainingSeconds)}"
-            currentState == TimerState.PAUSED && metronomeRunning ->
-                "Timer paused \u2022 Metronome"
-            currentState == TimerState.PAUSED ->
-                "Timer paused"
-            metronomeRunning ->
-                "Metronome running"
-            else ->
-                "Meditation timer idle"
+        val contentText = when (currentState) {
+            TimerState.RUNNING -> "Timer: ${formatTime(remainingSeconds)}"
+            TimerState.PAUSED -> "Timer paused"
+            TimerState.IDLE -> "Meditation timer idle"
         }
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Meditation Timer")
@@ -373,8 +349,6 @@ class MeditationTimerService : Service() {
             activeChimePlayers.forEach { it.release() }
             activeChimePlayers.clear()
         }
-        stopMetronomeInternal()
-        metronomeManager?.release()
         super.onDestroy()
     }
 
@@ -408,80 +382,6 @@ class MeditationTimerService : Service() {
 
     fun getMusicVolume(): Float = musicVolume
 
-    fun isMetronomeRunning(): Boolean = metronomeRunning
-
-    fun getMetronomeBpm(): Int = metronomeBpm
-
-    fun getMetronomeBeats(): Int = metronomeBeats
-
-    fun getMetronomeVolume(): Float = metronomeVolume
-
-    fun getMetronomeToneIndex(): Int = metronomeToneIndex
-
-    fun setMetronomeVolume(volume: Float) {
-        metronomeVolume = volume.coerceIn(0f, 1f)
-        metronomeManager?.setVolume(metronomeVolume)
-    }
-
-    fun setMetronomeToneIndex(index: Int) {
-        metronomeToneIndex = index
-        applyMetronomeTone()
-    }
-
-    fun updateMetronome(bpm: Int, beats: Int) {
-        metronomeBpm = bpm
-        metronomeBeats = beats
-        metronomeManager?.configure(metronomeBpm, metronomeBeats)
-        if (metronomeRunning) {
-            updateNotification()
-        }
-    }
-
-    private fun applyMetronomeTone() {
-        val option = MetronomeToneOptions.options.getOrNull(metronomeToneIndex)
-            ?: MetronomeToneOptions.options.first()
-        metronomeManager?.setTone(option.normalTone, option.accentTone)
-    }
-
-    private fun startMetronome(intent: Intent) {
-        metronomeBpm = intent.getIntExtra(EXTRA_METRONOME_BPM, metronomeBpm)
-        metronomeBeats = intent.getIntExtra(EXTRA_METRONOME_BEATS, metronomeBeats)
-        metronomeVolume = intent.getFloatExtra(EXTRA_METRONOME_VOLUME, metronomeVolume)
-        metronomeToneIndex = intent.getIntExtra(EXTRA_METRONOME_TONE_INDEX, metronomeToneIndex)
-        metronomeManager?.configure(metronomeBpm, metronomeBeats)
-        metronomeManager?.setVolume(metronomeVolume)
-        applyMetronomeTone()
-        metronomeRunning = true
-        metronomeManager?.start()
-        ensureForeground()
-        updateNotification()
-    }
-
-    private fun stopMetronome() {
-        stopMetronomeInternal()
-        updateNotification()
-        if (currentState == TimerState.IDLE) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            stopSelf()
-        }
-    }
-
-    private fun stopMetronomeInternal() {
-        if (metronomeRunning) {
-            metronomeRunning = false
-            metronomeManager?.stop()
-        }
-    }
-
-    private fun onMetronomeStopped() {
-        metronomeRunning = false
-        updateNotification()
-        if (currentState == TimerState.IDLE) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            stopSelf()
-        }
-    }
-
     enum class TimerState {
         IDLE,
         RUNNING,
@@ -494,8 +394,6 @@ class MeditationTimerService : Service() {
         const val ACTION_RESUME = "com.meditation.timer.RESUME"
         const val ACTION_STOP = "com.meditation.timer.STOP"
         const val ACTION_TICK = "com.meditation.timer.TICK"
-        const val ACTION_METRONOME_START = "com.meditation.timer.METRONOME_START"
-        const val ACTION_METRONOME_STOP = "com.meditation.timer.METRONOME_STOP"
 
         const val EXTRA_DURATION_MINUTES = "extra_duration_minutes"
         const val EXTRA_INTERVAL_MINUTES = "extra_interval_minutes"
@@ -508,10 +406,6 @@ class MeditationTimerService : Service() {
         const val EXTRA_END_CHIME = "extra_end_chime"
         const val EXTRA_REMAINING_SECONDS = "extra_remaining_seconds"
         const val EXTRA_TOTAL_SECONDS = "extra_total_seconds"
-        const val EXTRA_METRONOME_BPM = "extra_metronome_bpm"
-        const val EXTRA_METRONOME_BEATS = "extra_metronome_beats"
-        const val EXTRA_METRONOME_VOLUME = "extra_metronome_volume"
-        const val EXTRA_METRONOME_TONE_INDEX = "extra_metronome_tone_index"
 
         private const val CHANNEL_ID = "meditation_timer"
         private const val NOTIFICATION_ID = 1001

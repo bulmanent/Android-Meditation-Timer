@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         TabLayoutMediator(binding.mainTabs, binding.mainPager) { tab, position ->
             tab.text = when (position) {
                 0 -> getString(R.string.tab_timer)
-                else -> getString(R.string.tab_metronome)
+                else -> getString(R.string.tab_exercise_timer)
             }
         }.attach()
 
